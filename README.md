@@ -12,9 +12,12 @@ This demo illustrates the following steps to create a typical gRPC application f
 - Generate gRPC stub code using the protocol buffer compiler
 - Create the server application, implementing the generated service interfaces.
 
-### Tool Used: ##
+### Tools and Setup: ##
 - IntelliJ IDEA with Maven 
-- Plugins - Protocol Buffer--> "protoc-jar-maven-plugin"
+- Plugins - Protocol Buffer
+    - Download protoc-3.19.3-win64 and add this to PATH env variable.
+    - Add "protoc-jar-maven-plugin" to pom.xml
+
 - MySQL Database server
 - BloomRPC - https://github.com/bloomrpc/bloomrpc/releases
 
