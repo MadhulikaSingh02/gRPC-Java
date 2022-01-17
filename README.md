@@ -24,7 +24,7 @@ This demo illustrates the following steps to create a typical gRPC application f
 Maven Dependencies: Add grpc-netty, grpc-protobuf and grpc-stub dependencies
 
 ### MySQL Database server: ###
-- Login to MySQL workbench  with crendentials : test/test
+- Login to MySQL workbench  with credentials : test/test
 - Run the commands:
     1. create database backend_test;
     2. use backend_test;
@@ -35,8 +35,8 @@ Maven Dependencies: Add grpc-netty, grpc-protobuf and grpc-stub dependencies
 2. Ensure that all the dependencies and necessary plugins are present.
 3. Maven Clean project
 4. Maven Build project
-5. Run GRPCServer
-6. Install BloomRPC Tool and then open this tool. Add "login.proto" file and the three services are ready to test.
+5. Run GRPCServer.java
+6. Install BloomRPC Tool and then open this tool. Add "\gRPC-Java\src\main\resources\login.proto" file and the three services are ready to test.
 
 ### Files created/modified: ###
 1. pom.xml
