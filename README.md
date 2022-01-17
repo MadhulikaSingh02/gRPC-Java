@@ -1,5 +1,5 @@
-# gRPC-Java -User Login
-### **gRPC** is a high performance, open source RPC framework initially developed by Google. The framework is based on a client-server model of remote procedure calls. A client application can directly call methods on a server application as if it was a local object. ###
+# gRPC-Java -User Login #
+**gRPC** is a high performance, open source RPC framework initially developed by Google. The framework is based on a client-server model of remote procedure calls. A client application can directly call methods on a server application as if it was a local object.
 
 ## Problem Statement ##
 
