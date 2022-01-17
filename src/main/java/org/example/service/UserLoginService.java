@@ -5,8 +5,6 @@ import org.example.grpc.Login;
 import org.example.grpc.UserLoginGrpc;
 
 import java.sql.*;
-import java.util.List;
-import java.util.ArrayList;
 
 public class UserLoginService extends UserLoginGrpc.UserLoginImplBase {
     @Override
@@ -24,60 +22,49 @@ public class UserLoginService extends UserLoginGrpc.UserLoginImplBase {
             System.out.println("FirstName Entered ::>>" + firstName);
             System.out.println("LastName Entered ::>>" + lastName);
             String emailIdFromDB = null;
-
-            //before insertion, check the user exists or not.
             try {
+                //before insertion, check if the user exists or not.
                 emailIdFromDB = checkIfUserExists(emailId);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            if (emailIdFromDB != null) {
-                System.out.println("Email Address already in use. Try again with a different id>>");
-                response.setResponseCode(100).setResponseMessage("Email Id already used. Re-try with a new id!!!");
-            } else {
-                System.out.println("No Email id found.User can be created >>");
-                try {
+                if (emailIdFromDB != null) {
+                    System.out.println("Email Address already in use. Try again with a different id>>");
+                    response.setResponseCode(100).setResponseMessage("Email Id already used. Re-try with a new id!!!");
+                } else {
+                    System.out.println("No Email id found.User can be created >>");
                     PreparedStatement st = insertUserRow(request);
                     st.executeUpdate();
                     response.setResponseCode(200).setResponseMessage("User details inserted");
-                    System.out.println("values inserted");
-                } catch (Exception e) {
-                    response.setResponseCode(100).setResponseMessage("User details not inserted");
-                    e.printStackTrace();
+                    System.out.println("Values inserted");
                 }
+            }catch(Exception e){
+                e.printStackTrace();
             }
-        }
-        else{
+        }else{
                 response.setResponseCode(100).setResponseMessage("Incorrect Values.User details not inserted");
         }
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
 
-    private static PreparedStatement insertUserRow(Login.LoginRequest request) throws SQLException {
+    private static PreparedStatement insertUserRow(Login.LoginRequest request)  {
         String firstName = request.getFirstName();
         String lastName = request.getLastName();
         String emailId = request.getEmailId();
 
-        ResultSet resultSet = null;
         Connection connection = null;
-        PreparedStatement st = null;
-
-        String url = "jdbc:mysql://localhost:3306/backend_test?useSSL=false";
-        String user = "root";
-        String password = "password";
+        PreparedStatement statement = null;
 
         String sql = "INSERT INTO User_Details(FirstName, LastName, EmailId) VALUES(?,?,?)";
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection(url, user, password);
-            System.out.println("connection is successful >>> " + url);
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/backend_test?useSSL=false",
+                    "test","test");
+            System.out.println("connection is successful >>> ");
 
-            st = (PreparedStatement) connection.prepareStatement(sql);
-            st.setString(1, firstName);
-            st.setString(2, lastName);
-            st.setString(3, emailId);
-            return st;
+            statement = connection.prepareStatement(sql);
+            statement.setString(1, firstName);
+            statement.setString(2, lastName);
+            statement.setString(3, emailId);
+            return statement;
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,12 +76,10 @@ public class UserLoginService extends UserLoginGrpc.UserLoginImplBase {
                              StreamObserver<Login.LoginResponse> responseObserver) {
 
         String emailId = request.getEmailId();
-        System.out.println("Calling Microservice isUserExists ::>>" + emailId);
+        System.out.println("Calling Microservice isUserExists for::>>" + emailId);
         Login.LoginResponse.Builder response = Login.LoginResponse.newBuilder();
 
         if(emailId != null && !emailId.equals("")) {
-            System.out.println("Email Entered ::>>" + emailId);
-
             String emailIdFromDB = null;
             try {
                 emailIdFromDB = checkIfUserExists(emailId);
@@ -117,116 +102,79 @@ public class UserLoginService extends UserLoginGrpc.UserLoginImplBase {
     }
 
     private static String checkIfUserExists(String emailId) throws SQLException {
-        ResultSet resultSet = null;
         Connection connection = null;
         Statement statement = null;
-
-        String email = null;
-        String url="jdbc:mysql://localhost:3306/backend_test?useSSL=false";
-        String user = "root";
-        String password = "password";
+        String eId = null;
         String sql = "select EmailId from User_Details where EmailId='"+emailId+"'";
-        //select * from User_Details where EmailId='msingh@gmail.com'
         System.out.println(sql);
 
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection( url,user, password);
-            System.out.println("connection is successful >>> "+url);
+            connection = DriverManager.getConnection( "jdbc:mysql://localhost:3306/backend_test?useSSL=false","test", "test");
+            System.out.println("connection is successful>>");
 
             statement=connection.createStatement();
-            resultSet = statement.executeQuery(sql);
+            ResultSet resultSet = statement.executeQuery(sql);
             while (resultSet.next()) {
-                System.out.println("Printing result...");
-
                 // Now we can fetch the data by column name, save and use them!
-                email = resultSet.getString("EmailId");
-                System.out.println("email: " + email);
+                eId = resultSet.getString("EmailId");
+                System.out.println("Email Fetched : " + eId);
             }
 
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             // We have to close the connection and release the resources used.
             // Closing the statement results in closing the resultSet as well.
             try {
-                statement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
+                if(statement != null) statement.close();
+                if(connection!=null) connection.close();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        return email;
+        return eId;
     }
 
     @Override
     public void listUsers(Login.Empty request, StreamObserver<Login.MultipleUserResponse> responseObserver) {
-        List<Login.UserRecord> userRecordList = new ArrayList<>();
+        System.out.println("Calling Microservice listUsers >>::");
+
         Login.MultipleUserResponse.Builder response = Login.MultipleUserResponse.newBuilder();
-        //Login.MultipleUserResponse response= Login.MultipleUserResponse.newBuilder().build();
 
         //get all users from DB
-        ResultSet resultSet = null;
         Connection connection = null;
         Statement statement = null;
-        String url="jdbc:mysql://localhost:3306/backend_test?useSSL=false";
-        String user = "root";
-        String password = "password";
         String sql = "select * from User_Details";
         System.out.println(sql);
 
         try{
             Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection( url,user, password);
-            System.out.println("connection is successful >>> "+url);
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/backend_test?useSSL=false",
+                    "test","test");
+            System.out.println("Connection is successful >>> ");
 
             statement=connection.createStatement();
-            resultSet = statement.executeQuery(sql);
+            ResultSet resultSet = statement.executeQuery(sql);
 
-            // b.addPoint(Point.newBuilder().setX(x).setY(y).build());
             while (resultSet.next()) {
-                System.out.println("Printing result...");
                 response.addUserRow(Login.UserRecord.newBuilder().
                         setFirstName(resultSet.getString("FirstName")).
                         setLastName(resultSet.getString("LastName")).
                         setEmailId(resultSet.getString("EmailId")));
-                //List<Point> points = ...;
-                //response.addAllPoint(points);
-
-               /* userRecordList.add(Login.UserRecord.newBuilder().
-                        setFirstName(resultSet.getString("FirstName")).
-                        setLastName(resultSet.getString("LastName")).
-                        setEmailId(resultSet.getString("EmailId")).build());*/
-
             }
-            System.out.println("List size"+userRecordList.size());
-            //response.addAllUserRow(userRecordList);
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             // We have to close the connection and release the resources used.
             // Closing the statement results in closing the resultSet as well.
             try {
-                statement.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-            try {
-                connection.close();
-            } catch (SQLException e) {
+                if(statement != null) statement.close();
+                if(connection!=null) connection.close();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        //responseObserver.onNext(response.addAllUserRow(userRecordList).build());
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
     }
